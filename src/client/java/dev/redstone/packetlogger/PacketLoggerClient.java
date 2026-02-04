@@ -36,4 +36,8 @@ public class PacketLoggerClient implements ClientModInitializer {
 		
 		System.out.println("[PacketLogger] Initialized! Press F6 to open config.");
 	}
+	
+	public static KeyBinding getConfigKeyBinding() {
+		return configKeyBinding;
+	}
 }

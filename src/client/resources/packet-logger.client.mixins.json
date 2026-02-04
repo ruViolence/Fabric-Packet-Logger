@@ -6,7 +6,8 @@
     "ExampleClientMixin",
     "ClientConnectionMixin",
     "ClientPlayNetworkHandlerMixin",
-    "MinecraftClientMixin"
+    "MinecraftClientMixin",
+    "MultiplayerScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 0
