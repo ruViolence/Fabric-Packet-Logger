@@ -68,14 +68,6 @@ public class EntityTrackerUpdateS2CUnpacker implements PacketUnpacker<EntityTrac
         Object value = entry.value();
         sb.append(",value:").append(ReflectionUnpacker.unpackWithReflection(value));
         
-        // Versuche den Serializer-Typ zu ermitteln
-        try {
-            String serializerName = entry.handler().getClass().getSimpleName();
-            sb.append(",type:\"").append(serializerName).append("\"");
-        } catch (Exception e) {
-            // Ignore
-        }
-        
         sb.append("}");
         return sb.toString();
     }
