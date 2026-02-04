@@ -1,6 +1,6 @@
 package dev.redstone.packetlogger.logger.unpacker;
 
-import net.minecraft.component.ComponentMap;
+import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.*;
 import net.minecraft.enchantment.Enchantment;
@@ -12,6 +12,7 @@ import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Formatiert ItemStacks mit allen Components/NBT-Daten im JSON-ähnlichen Format.
@@ -64,43 +65,50 @@ public class ItemStackFormatter {
     
     private static String formatComponents(ItemStack stack) {
         List<String> parts = new ArrayList<>();
-        
+        ComponentChanges changes = stack.getComponentChanges();
+
         try {
-            // Custom Name
-            if (stack.contains(DataComponentTypes.CUSTOM_NAME)) {
-                Text name = stack.get(DataComponentTypes.CUSTOM_NAME);
+            log: {
+                Optional<? extends Text> opt = changes.get(DataComponentTypes.CUSTOM_NAME);
+                if (opt == null) break log;
+                
+                Text name = opt.orElse(null);
                 if (name != null) {
                     parts.add("\"minecraft:custom_name\":\"" + escapeString(name.getString()) + "\"");
                 }
             }
-            
-            // Item Name (unterschiedlich von Custom Name)
-            if (stack.contains(DataComponentTypes.ITEM_NAME)) {
-                Text name = stack.get(DataComponentTypes.ITEM_NAME);
+            log: {
+                Optional<? extends Text> opt = changes.get(DataComponentTypes.ITEM_NAME);
+                if (opt == null) break log;
+                
+                Text name = opt.orElse(null);
                 if (name != null) {
                     parts.add("\"minecraft:item_name\":\"" + escapeString(name.getString()) + "\"");
                 }
             }
-            
-            // Damage
-            if (stack.contains(DataComponentTypes.DAMAGE)) {
-                Integer damage = stack.get(DataComponentTypes.DAMAGE);
+            log: {
+                Optional<? extends Integer> opt = changes.get(DataComponentTypes.DAMAGE);
+                if (opt == null) break log;
+                
+                Integer damage = opt.orElse(null);
                 if (damage != null && damage > 0) {
                     parts.add("\"minecraft:damage\":" + damage);
                 }
             }
-            
-            // Max Damage
-            if (stack.contains(DataComponentTypes.MAX_DAMAGE)) {
-                Integer maxDamage = stack.get(DataComponentTypes.MAX_DAMAGE);
+            log: {
+                Optional<? extends Integer> opt = changes.get(DataComponentTypes.MAX_DAMAGE);
+                if (opt == null) break log;
+                
+                Integer maxDamage = opt.orElse(null);
                 if (maxDamage != null) {
                     parts.add("\"minecraft:max_damage\":" + maxDamage);
                 }
             }
-            
-            // Enchantments
-            if (stack.contains(DataComponentTypes.ENCHANTMENTS)) {
-                ItemEnchantmentsComponent enchants = stack.get(DataComponentTypes.ENCHANTMENTS);
+            log: {
+                Optional<? extends ItemEnchantmentsComponent> opt = changes.get(DataComponentTypes.ENCHANTMENTS);
+                if (opt == null) break log;
+                
+                ItemEnchantmentsComponent enchants = opt.orElse(null);
                 if (enchants != null && !enchants.isEmpty()) {
                     StringBuilder enchantSb = new StringBuilder("\"minecraft:enchantments\":{levels:{");
                     List<String> enchantList = new ArrayList<>();
@@ -113,10 +121,11 @@ public class ItemStackFormatter {
                     parts.add(enchantSb.toString());
                 }
             }
-            
-            // Stored Enchantments (für Bücher)
-            if (stack.contains(DataComponentTypes.STORED_ENCHANTMENTS)) {
-                ItemEnchantmentsComponent enchants = stack.get(DataComponentTypes.STORED_ENCHANTMENTS);
+            log: {
+                Optional<? extends ItemEnchantmentsComponent> opt = changes.get(DataComponentTypes.STORED_ENCHANTMENTS);
+                if (opt == null) break log;
+                
+                ItemEnchantmentsComponent enchants = opt.orElse(null);
                 if (enchants != null && !enchants.isEmpty()) {
                     StringBuilder enchantSb = new StringBuilder("\"minecraft:stored_enchantments\":{levels:{");
                     List<String> enchantList = new ArrayList<>();
@@ -129,10 +138,11 @@ public class ItemStackFormatter {
                     parts.add(enchantSb.toString());
                 }
             }
-            
-            // Lore
-            if (stack.contains(DataComponentTypes.LORE)) {
-                LoreComponent lore = stack.get(DataComponentTypes.LORE);
+            log: {
+                Optional<? extends LoreComponent> opt = changes.get(DataComponentTypes.LORE);
+                if (opt == null) break log;
+                
+                LoreComponent lore = opt.orElse(null);
                 if (lore != null && !lore.lines().isEmpty()) {
                     StringBuilder loreSb = new StringBuilder("\"minecraft:lore\":[");
                     List<String> loreLines = new ArrayList<>();
@@ -144,23 +154,29 @@ public class ItemStackFormatter {
                     parts.add(loreSb.toString());
                 }
             }
-            
-            // Unbreakable
-            if (stack.contains(DataComponentTypes.UNBREAKABLE)) {
-                parts.add("\"minecraft:unbreakable\":{}");
+            log: {
+                Optional<? extends UnbreakableComponent> opt = changes.get(DataComponentTypes.UNBREAKABLE);
+                if (opt == null) break log;
+                
+                UnbreakableComponent unbreakable = opt.orElse(null);
+                if (unbreakable != null) {
+                    parts.add("\"minecraft:unbreakable\":{}");
+                }
             }
-            
-            // Custom Model Data
-            if (stack.contains(DataComponentTypes.CUSTOM_MODEL_DATA)) {
-                CustomModelDataComponent cmd = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+            log: {
+                Optional<? extends CustomModelDataComponent> opt = changes.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+                if (opt == null) break log;
+                
+                CustomModelDataComponent cmd = opt.orElse(null);
                 if (cmd != null) {
                     parts.add("\"minecraft:custom_model_data\":" + cmd.toString());
                 }
             }
-            
-            // Potion Contents
-            if (stack.contains(DataComponentTypes.POTION_CONTENTS)) {
-                PotionContentsComponent potion = stack.get(DataComponentTypes.POTION_CONTENTS);
+            log: {
+                Optional<? extends PotionContentsComponent> opt = changes.get(DataComponentTypes.POTION_CONTENTS);
+                if (opt == null) break log;
+                
+                PotionContentsComponent potion = opt.orElse(null);
                 if (potion != null) {
                     StringBuilder potionSb = new StringBuilder("\"minecraft:potion_contents\":{");
                     if (potion.potion().isPresent()) {
@@ -170,18 +186,20 @@ public class ItemStackFormatter {
                     parts.add(potionSb.toString());
                 }
             }
-            
-            // Dyed Color
-            if (stack.contains(DataComponentTypes.DYED_COLOR)) {
-                DyedColorComponent color = stack.get(DataComponentTypes.DYED_COLOR);
+            log: {
+                Optional<? extends DyedColorComponent> opt = changes.get(DataComponentTypes.DYED_COLOR);
+                if (opt == null) break log;
+                
+                DyedColorComponent color = opt.orElse(null);
                 if (color != null) {
                     parts.add("\"minecraft:dyed_color\":{rgb:" + color.rgb() + "}");
                 }
             }
-            
-            // Custom Data (NBT)
-            if (stack.contains(DataComponentTypes.CUSTOM_DATA)) {
-                NbtComponent customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+            log: {
+                Optional<? extends NbtComponent> opt = changes.get(DataComponentTypes.CUSTOM_DATA);
+                if (opt == null) break log;
+                
+                NbtComponent customData = opt.orElse(null);
                 if (customData != null) {
                     NbtCompound nbt = customData.copyNbt();
                     if (!nbt.isEmpty()) {
@@ -189,10 +207,11 @@ public class ItemStackFormatter {
                     }
                 }
             }
-            
-            // Attribute Modifiers
-            if (stack.contains(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
-                AttributeModifiersComponent attrs = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+            log: {
+                Optional<? extends AttributeModifiersComponent> opt = changes.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+                if (opt == null) break log;
+                
+                AttributeModifiersComponent attrs = opt.orElse(null);
                 if (attrs != null && !attrs.modifiers().isEmpty()) {
                     StringBuilder attrSb = new StringBuilder("\"minecraft:attribute_modifiers\":{modifiers:[");
                     List<String> attrList = new ArrayList<>();
@@ -207,10 +226,11 @@ public class ItemStackFormatter {
                     parts.add(attrSb.toString());
                 }
             }
-            
-            // Container (für Shulker Boxes etc.)
-            if (stack.contains(DataComponentTypes.CONTAINER)) {
-                ContainerComponent container = stack.get(DataComponentTypes.CONTAINER);
+            log: {
+                Optional<? extends ContainerComponent> opt = changes.get(DataComponentTypes.CONTAINER);
+                if (opt == null) break log;
+                
+                ContainerComponent container = opt.orElse(null);
                 if (container != null) {
                     StringBuilder contSb = new StringBuilder("\"minecraft:container\":[");
                     List<String> items = new ArrayList<>();
@@ -224,10 +244,11 @@ public class ItemStackFormatter {
                     parts.add(contSb.toString());
                 }
             }
-            
-            // Bundle Contents
-            if (stack.contains(DataComponentTypes.BUNDLE_CONTENTS)) {
-                BundleContentsComponent bundle = stack.get(DataComponentTypes.BUNDLE_CONTENTS);
+            log: {
+                Optional<? extends BundleContentsComponent> opt = changes.get(DataComponentTypes.BUNDLE_CONTENTS);
+                if (opt == null) break log;
+                
+                BundleContentsComponent bundle = opt.orElse(null);
                 if (bundle != null && !bundle.isEmpty()) {
                     StringBuilder bundleSb = new StringBuilder("\"minecraft:bundle_contents\":[");
                     List<String> items = new ArrayList<>();
@@ -239,10 +260,11 @@ public class ItemStackFormatter {
                     parts.add(bundleSb.toString());
                 }
             }
-            
-            // Written Book Content
-            if (stack.contains(DataComponentTypes.WRITTEN_BOOK_CONTENT)) {
-                WrittenBookContentComponent book = stack.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
+            log: {
+                Optional<? extends WrittenBookContentComponent> opt = changes.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
+                if (opt == null) break log;
+                
+                WrittenBookContentComponent book = opt.orElse(null);
                 if (book != null) {
                     StringBuilder bookSb = new StringBuilder("\"minecraft:written_book_content\":{");
                     bookSb.append("title:\"").append(escapeString(book.title().raw())).append("\"");
@@ -252,10 +274,11 @@ public class ItemStackFormatter {
                     parts.add(bookSb.toString());
                 }
             }
-            
-            // Writable Book Content
-            if (stack.contains(DataComponentTypes.WRITABLE_BOOK_CONTENT)) {
-                WritableBookContentComponent book = stack.get(DataComponentTypes.WRITABLE_BOOK_CONTENT);
+            log: {
+                Optional<? extends WritableBookContentComponent> opt = changes.get(DataComponentTypes.WRITABLE_BOOK_CONTENT);
+                if (opt == null) break log;
+                
+                WritableBookContentComponent book = opt.orElse(null);
                 if (book != null && !book.pages().isEmpty()) {
                     StringBuilder bookSb = new StringBuilder("\"minecraft:writable_book_content\":{pages:[");
                     List<String> pages = new ArrayList<>();
@@ -267,7 +290,6 @@ public class ItemStackFormatter {
                     parts.add(bookSb.toString());
                 }
             }
-            
         } catch (Exception e) {
             parts.add("\"error\":\"" + escapeString(e.getMessage()) + "\"");
         }
