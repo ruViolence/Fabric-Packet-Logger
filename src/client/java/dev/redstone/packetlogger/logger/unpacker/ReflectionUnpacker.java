@@ -5,7 +5,10 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.EulerAngle;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -51,6 +54,18 @@ public class ReflectionUnpacker {
             if (obj instanceof Vec3d) {
                 Vec3d vec = (Vec3d) obj;
                 return "{x:" + vec.x + ",y:" + vec.y + ",z:" + vec.z + "}";
+            }
+            if (obj instanceof Vector3f) {
+                Vector3f vec = (Vector3f) obj;
+                return "{x:" + vec.x + ",y:" + vec.y + ",z:" + vec.z + "}";
+            }
+            if (obj instanceof Quaternionf) {
+                Quaternionf quat = (Quaternionf) obj;
+                return "{w:" + quat.w + ",x:" + quat.x + ",y:" + quat.y + ",z:" + quat.z + "}";
+            }
+            if (obj instanceof EulerAngle) {
+                EulerAngle angle = (EulerAngle) obj;
+                return "{pitch:" + angle.getPitch() + ",yaw:" + angle.getYaw() + ",roll:" + angle.getRoll() + "}";
             }
             if (obj instanceof ChunkPos) {
                 ChunkPos pos = (ChunkPos) obj;
