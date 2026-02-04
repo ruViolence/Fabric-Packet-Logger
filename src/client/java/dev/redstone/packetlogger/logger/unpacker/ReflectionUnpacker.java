@@ -187,6 +187,7 @@ public class ReflectionUnpacker {
                     String formatted = unpackWithReflection(value, depth + 1, visited);
                     
                     String fieldName = MappingResolver.getInstance().resolveFieldName(clazz, field.getName());
+                    if (fieldName.startsWith("polymer$")) continue;
                     fields.add(fieldName + ":" + formatted);
                 } catch (Exception e) {
                     // Skip inaccessible fields
