@@ -185,7 +185,9 @@ public class ReflectionUnpacker {
                     field.setAccessible(true);
                     Object value = field.get(obj);
                     String formatted = unpackWithReflection(value, depth + 1, visited);
-                    fields.add(field.getName() + ":" + formatted);
+                    
+                    String fieldName = MappingResolver.getInstance().resolveFieldName(clazz, field.getName());
+                    fields.add(fieldName + ":" + formatted);
                 } catch (Exception e) {
                     // Skip inaccessible fields
                 }
