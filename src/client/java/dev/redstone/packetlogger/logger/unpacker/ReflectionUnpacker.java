@@ -1,9 +1,7 @@
 package dev.redstone.packetlogger.logger.unpacker;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -39,9 +37,6 @@ public class ReflectionUnpacker {
             // Spezielle Typen zuerst
             if (obj instanceof ItemStack) {
                 return ItemStackFormatter.format((ItemStack) obj);
-            }
-            if (obj instanceof NbtCompound) {
-                return ((NbtCompound) obj).asString();
             }
             if (obj instanceof NbtElement) {
                 return ((NbtElement) obj).asString();
