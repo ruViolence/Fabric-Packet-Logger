@@ -17,8 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ClientConnection.class)
 public class ClientConnectionMixin {
     
-    private static boolean debugLogged = false;
-    
     /**
      * Intercepted alle eingehenden Pakete (Server -> Client)
      * Wird aufgerufen bevor handlePacket ausgeführt wird.
@@ -32,17 +30,12 @@ public class ClientConnectionMixin {
         )
     )
     private void onReceivePacket(ChannelHandlerContext context, Packet<?> packet, CallbackInfo ci) {
-        if (!debugLogged) {
-            System.out.println("[PacketLogger] ========================================");
-            System.out.println("[PacketLogger] Mixin is working! First packet received: " + packet.getClass().getSimpleName());
-            System.out.println("[PacketLogger] ========================================");
-            debugLogged = true;
-        }
         try {
             // Alle eingehenden Pakete sind S2C - wir sind im channelRead0
             PacketLogger.logIncoming(packet);
         } catch (Exception e) {
             System.err.println("[PacketLogger] Error in onReceivePacket: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -59,6 +52,7 @@ public class ClientConnectionMixin {
             PacketLogger.logOutgoing(packet);
         } catch (Exception e) {
             System.err.println("[PacketLogger] Error in onSendPacket: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

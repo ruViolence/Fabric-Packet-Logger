@@ -5,11 +5,6 @@ import dev.redstone.packetlogger.logger.unpacker.*;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
-import net.minecraft.network.packet.c2s.play.CreativeInventoryActionC2SPacket;
-import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
-import net.minecraft.network.packet.s2c.play.*;
-import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -38,63 +33,40 @@ public class PacketLogger {
     private static boolean wasLoggingEnabled = false;
     
     private static final Map<Class<?>, PacketUnpacker<?>> UNPACKERS = new HashMap<>();
-    private static final Map<Class<?>, String> PACKET_NAMES = new HashMap<>();
     
     static {
         registerUnpackers();
+        PacketRegistry.initialize();
     }
     
     private static void registerUnpackers() {
-        // Inventory/Item Pakete
-        registerPacket(InventoryS2CPacket.class, "InventoryS2CPacket", new InventoryS2CUnpacker());
-        registerPacket(ScreenHandlerSlotUpdateS2CPacket.class, "ScreenHandlerSlotUpdateS2CPacket", new SlotUpdateS2CUnpacker());
-        registerPacket(CreativeInventoryActionC2SPacket.class, "CreativeInventoryActionC2SPacket", new CreativeInventoryC2SUnpacker());
-        registerPacket(ClickSlotC2SPacket.class, "ClickSlotC2SPacket", new ClickSlotC2SUnpacker());
-
-        // Block Pakete
-        registerPacket(BlockEntityUpdateS2CPacket.class, "BlockEntityUpdateS2CPacket", new BlockEntityUpdateS2CUnpacker());
-        registerPacket(BlockUpdateS2CPacket.class, "BlockUpdateS2CPacket", new BlockUpdateS2CUnpacker());
-        registerPacket(ChunkDeltaUpdateS2CPacket.class, "ChunkDeltaUpdateS2CPacket", new ChunkDeltaUpdateS2CUnpacker());
-        
-        // Entity Pakete
-        registerPacket(EntityTrackerUpdateS2CPacket.class, "EntityTrackerUpdateS2CPacket", new EntityTrackerUpdateS2CUnpacker());
-        registerPacket(EntityAttributesS2CPacket.class, "EntityAttributesS2CPacket", new EntityAttributesS2CUnpacker());
-        registerPacket(EntitySpawnS2CPacket.class, "EntitySpawnS2CPacket", new EntitySpawnS2CUnpacker());
-        
-        // Chunk Pakete
-        registerPacket(ChunkDataS2CPacket.class, "ChunkDataS2CPacket", new ChunkDataS2CUnpacker());
-        
-        // NBT/Custom Pakete
-        registerPacket(NbtQueryResponseS2CPacket.class, "NbtQueryResponseS2CPacket", new NbtQueryResponseS2CUnpacker());
-        registerPacket(CustomPayloadS2CPacket.class, "CustomPayloadS2CPacket", new CustomPayloadS2CUnpacker());
-        registerPacket(CustomPayloadC2SPacket.class, "CustomPayloadC2SPacket", new CustomPayloadC2SUnpacker());
-        
-        // Weitere Pakete (nur Namen-Mapping)
-        registerPacketName(GameJoinS2CPacket.class, "GameJoinS2CPacket");
-        registerPacketName(PlayerPositionLookS2CPacket.class, "PlayerPositionLookS2CPacket");
-        registerPacketName(OpenScreenS2CPacket.class, "OpenScreenS2CPacket");
-        registerPacketName(CloseScreenS2CPacket.class, "CloseScreenS2CPacket");
-        registerPacketName(EntityEquipmentUpdateS2CPacket.class, "EntityEquipmentUpdateS2CPacket");
-        registerPacketName(EntityPositionS2CPacket.class, "EntityPositionS2CPacket");
-        registerPacketName(EntityVelocityUpdateS2CPacket.class, "EntityVelocityUpdateS2CPacket");
-        registerPacketName(HealthUpdateS2CPacket.class, "HealthUpdateS2CPacket");
-        registerPacketName(ExperienceBarUpdateS2CPacket.class, "ExperienceBarUpdateS2CPacket");
-        registerPacketName(ChatMessageS2CPacket.class, "ChatMessageS2CPacket");
-        registerPacketName(GameMessageS2CPacket.class, "GameMessageS2CPacket");
-        registerPacketName(ParticleS2CPacket.class, "ParticleS2CPacket");
-        registerPacketName(PlaySoundS2CPacket.class, "PlaySoundS2CPacket");
-        registerPacketName(WorldTimeUpdateS2CPacket.class, "WorldTimeUpdateS2CPacket");
-    }
-    
-    private static <T extends Packet<?>> void registerPacket(Class<T> clazz, String name, PacketUnpacker<T> unpacker) {
-        PACKET_NAMES.put(clazz, name);
-        if (unpacker != null) {
-            UNPACKERS.put(clazz, unpacker);
+        try {
+            registerUnpacker("InventoryS2CPacket", new InventoryS2CUnpacker());
+            registerUnpacker("ScreenHandlerSlotUpdateS2CPacket", new SlotUpdateS2CUnpacker());
+            registerUnpacker("CreativeInventoryActionC2SPacket", new CreativeInventoryC2SUnpacker());
+            registerUnpacker("ClickSlotC2SPacket", new ClickSlotC2SUnpacker());
+            registerUnpacker("BlockEntityUpdateS2CPacket", new BlockEntityUpdateS2CUnpacker());
+            registerUnpacker("BlockUpdateS2CPacket", new BlockUpdateS2CUnpacker());
+            registerUnpacker("ChunkDeltaUpdateS2CPacket", new ChunkDeltaUpdateS2CUnpacker());
+            registerUnpacker("EntityTrackerUpdateS2CPacket", new EntityTrackerUpdateS2CUnpacker());
+            registerUnpacker("EntityAttributesS2CPacket", new EntityAttributesS2CUnpacker());
+            registerUnpacker("EntitySpawnS2CPacket", new EntitySpawnS2CUnpacker());
+            registerUnpacker("ChunkDataS2CPacket", new ChunkDataS2CUnpacker());
+            registerUnpacker("NbtQueryResponseS2CPacket", new NbtQueryResponseS2CUnpacker());
+            registerUnpacker("CustomPayloadS2CPacket", new CustomPayloadS2CUnpacker());
+            registerUnpacker("CustomPayloadC2SPacket", new CustomPayloadC2SUnpacker());
+        } catch (Exception e) {
+            System.err.println("[PacketLogger] Error registering unpackers: " + e.getMessage());
         }
     }
     
-    private static void registerPacketName(Class<?> clazz, String name) {
-        PACKET_NAMES.put(clazz, name);
+    private static void registerUnpacker(String packetName, PacketUnpacker<?> unpacker) {
+        for (Class<?> clazz : PacketRegistry.getAllPacketClasses()) {
+            if (PacketRegistry.getPacketName(clazz).equals(packetName)) {
+                UNPACKERS.put(clazz, unpacker);
+                return;
+            }
+        }
     }
     
     public static void onWorldJoin(String worldName) {
@@ -152,20 +124,14 @@ public class PacketLogger {
         String packetData = unpackPacket(packet);
         
         if (config.logMode == ModConfig.LogMode.CHAT) {
-            logToChat(timestamp, direction, simpleName, packetData, incoming);
+            logToChat(timestamp, direction, incoming, simpleName, packetData);
         } else {
             logToFile(timestamp, direction, simpleName, packetData);
         }
     }
     
     private static String getDeobfuscatedName(Packet<?> packet) {
-        Class<?> clazz = packet.getClass();
-        String mappedName = PACKET_NAMES.get(clazz);
-        if (mappedName != null) return mappedName;
-        
-        String simpleName = clazz.getSimpleName();
-        if (simpleName.contains("Packet")) return simpleName;
-        return simpleName;
+        return PacketRegistry.getPacketName(packet.getClass());
     }
     
     private static boolean shouldLogS2C(String simpleName, ModConfig config) {
@@ -195,7 +161,7 @@ public class PacketLogger {
         }
     }
 
-    private static void logToChat(String timestamp, String direction, String packetName, String packetData, boolean incoming) {
+    private static void logToChat(String timestamp, String direction, boolean incoming, String packetName, String packetData) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.inGameHud == null || client.inGameHud.getChatHud() == null) return;
         
@@ -206,7 +172,13 @@ public class PacketLogger {
         MutableText dataText = Text.literal(shortData).formatted(Formatting.WHITE);
         
         MutableText fullMessage = Text.empty().append(timeText).append(dirText).append(nameText).append(dataText);
-        client.inGameHud.getChatHud().addMessage(fullMessage);
+        
+        // Run on main thread to avoid concurrent modification issues with chat mods like ChatPlus
+        client.execute(() -> {
+            if (client.inGameHud != null && client.inGameHud.getChatHud() != null) {
+                client.inGameHud.getChatHud().addMessage(fullMessage);
+            }
+        });
     }
     
     private static void logToFile(String timestamp, String direction, String packetName, String packetData) {
@@ -264,6 +236,7 @@ public class PacketLogger {
     
     private static String sanitizeFileName(String name) {
         if (name == null) return "unknown";
-        return name.replaceAll("[^a-zA-Z0-9._-]", "_").replaceAll("_+", "_").substring(0, Math.min(name.length(), 50));
+        String sanitized = name.replaceAll("[^a-zA-Z0-9._-]", "_").replaceAll("_+", "_");
+        return sanitized.substring(0, Math.min(sanitized.length(), 50));
     }
 }

@@ -109,4 +109,20 @@ public class MappingResolver {
     public boolean isLoaded() {
         return loaded;
     }
+    
+    public String resolveClassName(String className) {
+        if (!loaded || className == null) {
+            return className;
+        }
+        
+        String intermediaryClassName = className.replace('.', '/');
+        
+        for (Map.Entry<String, String> entry : namedToIntermediary.entrySet()) {
+            if (entry.getValue().equals(intermediaryClassName)) {
+                return entry.getKey();
+            }
+        }
+        
+        return className;
+    }
 }

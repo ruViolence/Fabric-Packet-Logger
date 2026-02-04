@@ -2,6 +2,7 @@ package dev.redstone.packetlogger.screen;
 
 import dev.redstone.packetlogger.config.ModConfig;
 import dev.redstone.packetlogger.config.ModConfig.LogMode;
+import dev.redstone.packetlogger.logger.PacketRegistry;
 import dev.redstone.packetlogger.screen.widget.DualListSelectorWidget;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -26,170 +27,29 @@ public class SimpleConfigScreen extends Screen {
     private boolean logPacketsEnabled;
     private LogMode currentLogMode;
     
-    // Vollständige Liste S2C Pakete (Server to Client)
-    private static final List<String> S2C_PACKAGES = Arrays.asList(
-        "AdvancementUpdateS2CPacket",
-        "BlockBreakingProgressS2CPacket",
-        "BlockEntityUpdateS2CPacket",
-        "BlockEventS2CPacket",
-        "BlockUpdateS2CPacket",
-        "BossBarS2CPacket",
-        "BundleS2CPacket",
-        "ChangeUnlockedRecipesS2CPacket",
-        "ChatMessageS2CPacket",
-        "ChatSuggestionsS2CPacket",
-        "ChunkBiomeDataS2CPacket",
-        "ChunkDataS2CPacket",
-        "ChunkDeltaUpdateS2CPacket",
-        "ChunkLoadDistanceS2CPacket",
-        "ChunkRenderDistanceCenterS2CPacket",
-        "ChunkSentS2CPacket",
-        "ClearTitleS2CPacket",
-        "CloseScreenS2CPacket",
-        "CommandSuggestionsS2CPacket",
-        "CommandTreeS2CPacket",
-        "CooldownUpdateS2CPacket",
-        "CraftFailedResponseS2CPacket",
-        "DamageTiltS2CPacket",
-        "DeathMessageS2CPacket",
-        "DebugSampleS2CPacket",
-        "DifficultyS2CPacket",
-        "EndCombatS2CPacket",
-        "EnterCombatS2CPacket",
-        "EnterReconfigurationS2CPacket",
-        "EntitiesDestroyS2CPacket",
-        "EntityAnimationS2CPacket",
-        "EntityAttachS2CPacket",
-        "EntityAttributesS2CPacket",
-        "EntityDamageS2CPacket",
-        "EntityEquipmentUpdateS2CPacket",
-        "EntityPassengersSetS2CPacket",
-        "EntityPositionS2CPacket",
-        "EntityS2CPacket",
-        "EntitySetHeadYawS2CPacket",
-        "EntitySpawnS2CPacket",
-        "EntityStatusEffectS2CPacket",
-        "EntityStatusS2CPacket",
-        "EntityTrackerUpdateS2CPacket",
-        "EntityVelocityUpdateS2CPacket",
-        "ExperienceBarUpdateS2CPacket",
-        "ExperienceOrbSpawnS2CPacket",
-        "ExplosionS2CPacket",
-        "GameJoinS2CPacket",
-        "GameMessageS2CPacket",
-        "GameStateChangeS2CPacket",
-        "HealthUpdateS2CPacket",
-        "InventoryS2CPacket",
-        "ItemPickupAnimationS2CPacket",
-        "LightUpdateS2CPacket",
-        "LookAtS2CPacket",
-        "MapUpdateS2CPacket",
-        "NbtQueryResponseS2CPacket",
-        "OpenHorseScreenS2CPacket",
-        "OpenScreenS2CPacket",
-        "OpenWrittenBookS2CPacket",
-        "OverlayMessageS2CPacket",
-        "ParticleS2CPacket",
-        "PlayerAbilitiesS2CPacket",
-        "PlayerActionResponseS2CPacket",
-        "PlayerListHeaderS2CPacket",
-        "PlayerListS2CPacket",
-        "PlayerPositionLookS2CPacket",
-        "PlayerRemoveS2CPacket",
-        "PlayerRespawnS2CPacket",
-        "PlayerSpawnPositionS2CPacket",
-        "PlaySoundFromEntityS2CPacket",
-        "PlaySoundS2CPacket",
-        "ProfilelessChatMessageS2CPacket",
-        "ProjectilePowerS2CPacket",
-        "RemoveEntityStatusEffectS2CPacket",
-        "RemoveMessageS2CPacket",
-        "ScoreboardDisplayS2CPacket",
-        "ScoreboardObjectiveUpdateS2CPacket",
-        "ScoreboardScoreResetS2CPacket",
-        "ScoreboardScoreUpdateS2CPacket",
-        "ScreenHandlerPropertyUpdateS2CPacket",
-        "ScreenHandlerSlotUpdateS2CPacket",
-        "SelectAdvancementTabS2CPacket",
-        "ServerMetadataS2CPacket",
-        "SetCameraEntityS2CPacket",
-        "SetTradeOffersS2CPacket",
-        "SignEditorOpenS2CPacket",
-        "SimulationDistanceS2CPacket",
-        "StartChunkSendS2CPacket",
-        "StatisticsS2CPacket",
-        "StopSoundS2CPacket",
-        "SubtitleS2CPacket",
-        "SynchronizeRecipesS2CPacket",
-        "TeamS2CPacket",
-        "TickStepS2CPacket",
-        "TitleFadeS2CPacket",
-        "TitleS2CPacket",
-        "UnloadChunkS2CPacket",
-        "UpdateSelectedSlotS2CPacket",
-        "UpdateTickRateS2CPacket",
-        "VehicleMoveS2CPacket",
-        "WorldBorderCenterChangedS2CPacket",
-        "WorldBorderInitializeS2CPacket",
-        "WorldBorderInterpolateSizeS2CPacket",
-        "WorldBorderSizeChangedS2CPacket",
-        "WorldBorderWarningBlocksChangedS2CPacket",
-        "WorldBorderWarningTimeChangedS2CPacket",
-        "WorldEventS2CPacket",
-        "WorldTimeUpdateS2CPacket"
-    );
+    // Lazy-loaded packet lists to avoid early initialization
+    private static List<String> s2cPackages = null;
+    private static List<String> c2sPackages = null;
     
-    // Vollständige Liste C2S Pakete (Client to Server)
-    private static final List<String> C2S_PACKAGES = Arrays.asList(
-        "AcknowledgeChunksC2SPacket",
-        "AcknowledgeReconfigurationC2SPacket",
-        "AdvancementTabC2SPacket",
-        "BoatPaddleStateC2SPacket",
-        "BookUpdateC2SPacket",
-        "ButtonClickC2SPacket",
-        "ChatCommandSignedC2SPacket",
-        "ChatMessageC2SPacket",
-        "ClickSlotC2SPacket",
-        "ClientCommandC2SPacket",
-        "ClientStatusC2SPacket",
-        "CloseHandledScreenC2SPacket",
-        "CommandExecutionC2SPacket",
-        "CraftRequestC2SPacket",
-        "CreativeInventoryActionC2SPacket",
-        "DebugSampleSubscriptionC2SPacket",
-        "HandSwingC2SPacket",
-        "JigsawGeneratingC2SPacket",
-        "MessageAcknowledgmentC2SPacket",
-        "PickFromInventoryC2SPacket",
-        "PlayerActionC2SPacket",
-        "PlayerInputC2SPacket",
-        "PlayerInteractBlockC2SPacket",
-        "PlayerInteractEntityC2SPacket",
-        "PlayerInteractItemC2SPacket",
-        "PlayerMoveC2SPacket",
-        "PlayerSessionC2SPacket",
-        "QueryBlockNbtC2SPacket",
-        "QueryEntityNbtC2SPacket",
-        "RecipeBookDataC2SPacket",
-        "RecipeCategoryOptionsC2SPacket",
-        "RenameItemC2SPacket",
-        "RequestCommandCompletionsC2SPacket",
-        "SelectMerchantTradeC2SPacket",
-        "SlotChangedStateC2SPacket",
-        "SpectatorTeleportC2SPacket",
-        "TeleportConfirmC2SPacket",
-        "UpdateBeaconC2SPacket",
-        "UpdateCommandBlockC2SPacket",
-        "UpdateCommandBlockMinecartC2SPacket",
-        "UpdateDifficultyC2SPacket",
-        "UpdateDifficultyLockC2SPacket",
-        "UpdateJigsawC2SPacket",
-        "UpdatePlayerAbilitiesC2SPacket",
-        "UpdateSelectedSlotC2SPacket",
-        "UpdateSignC2SPacket",
-        "UpdateStructureBlockC2SPacket",
-        "VehicleMoveC2SPacket"
-    );
+    private static List<String> getS2CPackages() {
+        if (s2cPackages == null) {
+            s2cPackages = PacketRegistry.getAllPacketNames().stream()
+                .filter(name -> name.contains("S2CPacket"))
+                .sorted()
+                .toList();
+        }
+        return s2cPackages;
+    }
+    
+    private static List<String> getC2SPackages() {
+        if (c2sPackages == null) {
+            c2sPackages = PacketRegistry.getAllPacketNames().stream()
+                .filter(name -> name.contains("C2SPacket"))
+                .sorted()
+                .toList();
+        }
+        return c2sPackages;
+    }
 
     public SimpleConfigScreen(Screen parent) {
         super(Text.literal("Packet Logger"));
@@ -240,7 +100,7 @@ public class SimpleConfigScreen extends Screen {
         this.s2cSelector = new DualListSelectorWidget(
             panelX, y, panelWidth, selectorHeight,
             "S2C Packets (Server → Client)",
-            S2C_PACKAGES,
+            getS2CPackages(),
             new HashSet<>(config.selectedS2CPackets),
             selection -> {}
         );
@@ -252,7 +112,7 @@ public class SimpleConfigScreen extends Screen {
         this.c2sSelector = new DualListSelectorWidget(
             panelX, y, panelWidth, selectorHeight,
             "C2S Packets (Client → Server)",
-            C2S_PACKAGES,
+            getC2SPackages(),
             new HashSet<>(config.selectedC2SPackets),
             selection -> {}
         );
