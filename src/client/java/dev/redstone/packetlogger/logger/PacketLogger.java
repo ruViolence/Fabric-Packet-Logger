@@ -4,7 +4,9 @@ import dev.redstone.packetlogger.config.ModConfig;
 import dev.redstone.packetlogger.logger.unpacker.*;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.BundleS2CPacket;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -93,7 +95,11 @@ public class PacketLogger {
     }
     
     public static void logIncoming(Packet<?> packet) {
-        logPacket(packet, true);
+        if (isBundlePacket(packet)) {
+            unpackAndLogBundle(packet);
+        } else {
+            logPacket(packet, true);
+        }
     }
     
     public static void logOutgoing(Packet<?> packet) {
@@ -127,6 +133,25 @@ public class PacketLogger {
             logToChat(timestamp, direction, incoming, simpleName, packetData);
         } else {
             logToFile(timestamp, direction, simpleName, packetData);
+        }
+    }
+    
+    private static boolean isBundlePacket(Packet<?> packet) {
+        String name = PacketRegistry.getPacketName(packet.getClass());
+        return name.equals("BundleS2CPacket");
+    }
+    
+    private static void unpackAndLogBundle(Packet<?> bundlePacket) {
+        try {
+            BundleS2CPacket bundle = (BundleS2CPacket) bundlePacket;
+            Iterable<Packet<? super ClientPlayPacketListener>> packets = bundle.getPackets();
+            
+            for (Packet<? super ClientPlayPacketListener> innerPacket : packets) {
+                logPacket(innerPacket, true);
+            }
+        } catch (Exception e) {
+            System.err.println("[PacketLogger] Failed to unpack bundle: " + e.getMessage());
+            logPacket(bundlePacket, true);
         }
     }
     

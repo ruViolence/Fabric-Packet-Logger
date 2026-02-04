@@ -35,6 +35,8 @@ public class SimpleConfigScreen extends Screen {
         if (s2cPackages == null) {
             s2cPackages = PacketRegistry.getAllPacketNames().stream()
                 .filter(name -> name.contains("S2CPacket"))
+                .filter(name -> !name.equals("BundleS2CPacket"))
+                .filter(name -> !name.equals("BundleDelimiterS2CPacket"))
                 .sorted()
                 .toList();
         }
