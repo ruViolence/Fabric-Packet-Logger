@@ -198,8 +198,8 @@ public class PacketLogger {
     private static Path getLogFile() throws IOException {
         if (currentSessionId == null || currentLogFile == null) {
             currentSessionId = LocalDateTime.now().format(FILE_DATE_FORMAT);
-            Path configDir = FabricLoader.getInstance().getConfigDir();
-            Path logDir = configDir.resolve("packet-logger");
+            Path gameDir = FabricLoader.getInstance().getGameDir();
+            Path logDir = gameDir.resolve("packet-logger");
             Files.createDirectories(logDir);
             
             String worldName = getWorldName();
